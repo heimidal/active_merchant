@@ -325,6 +325,23 @@ class AuthorizeNetCimTest < Test::Unit::TestCase
     assert_equal 'This transaction has been approved.', response.params['direct_response']['message']
   end
 
+  def test_gateway_mode_option
+    assert @gateway.test?
+
+    gateway_test = AuthorizeNetCimGateway.new(
+      :login => 'X',
+      :password => 'Y',
+      :gateway_mode => :test
+    )
+
+    gateway_prod = AuthorizeNetCimGateway.new(
+      :login => 'X',
+      :password => 'Y',
+      :gateway_mode => :production
+    )
+    assert !gateway_prod.test?
+  end
+
   private
   
   def successful_create_customer_profile_response

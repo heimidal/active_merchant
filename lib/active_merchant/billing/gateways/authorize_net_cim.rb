@@ -88,12 +88,20 @@ module ActiveMerchant #:nodoc:
       #
       # * <tt>:login</tt> -- The Authorize.Net API Login ID (REQUIRED)
       # * <tt>:password</tt> -- The Authorize.Net Transaction Key. (REQUIRED)
-      # * <tt>:test</tt> -- +true+ or +false+. If true, perform transactions against the test server. 
-      #   Otherwise, perform transactions against the production server.
+      # * <tt>:test</tt> -- +true+ or +false+. If true, perform transactions in test mode.
+      #   (i.e. x_test_request = true) Otherwise, perform transactions in normal mode.
+      # * <tt>:gateway_mode</tt> -- +:test+ or +:production+. If given, will override the
+      #   value of +Base.gateway_mode+.  Setting to +:test+ will run transactions against
+      #   the test gateway URL (i.e. developer's test account).
       def initialize(options = {})
         requires!(options, :login, :password)
         @options = options
         super
+      end
+
+      # Are we using the test gateway?
+      def test?
+        options[:gateway_mode] ? (options[:gateway_mode] == :test) : super
       end
 
       # Creates a new customer profile along with any customer payment profiles and customer shipping addresses
