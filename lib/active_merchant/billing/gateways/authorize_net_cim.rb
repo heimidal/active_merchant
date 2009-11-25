@@ -32,6 +32,8 @@ module ActiveMerchant #:nodoc:
       self.test_url = 'https://apitest.authorize.net/xml/v1/request.api'
       self.live_url = 'https://api.authorize.net/xml/v1/request.api'
       
+      class_inheritable_accessor :duplicate_window
+
       AUTHORIZE_NET_CIM_NAMESPACE = 'AnetApi/xml/v1/schema/AnetApiSchema.xsd'
 
       CIM_ACTIONS = {
@@ -466,7 +468,10 @@ module ActiveMerchant #:nodoc:
 
       def build_create_customer_profile_transaction_request(xml, options)
         add_transaction(xml, options[:transaction])
-        xml.tag!('extraOptions', "x_test_request=TRUE") if @options[:test]
+        extra_options = []
+        extra_options << "x_test_request=TRUE" if @options[:test]
+        extra_options << "x_duplicate_window=#{duplicate_window}" unless duplicate_window.nil?
+        xml.tag!('extraOptions', extra_options.join('&')) unless extra_options.empty?
         
         xml.target!
       end

@@ -2,6 +2,7 @@ require 'test_helper'
 
 class AuthorizeNetCimTest < Test::Unit::TestCase
   def setup
+    AuthorizeNetCimGateway.duplicate_window = nil
     @gateway = AuthorizeNetCimGateway.new(
       :login => 'X',
       :password => 'Y'
@@ -323,6 +324,63 @@ class AuthorizeNetCimTest < Test::Unit::TestCase
     assert_success response
     assert_nil response.authorization
     assert_equal 'This transaction has been approved.', response.params['direct_response']['message']
+  end
+
+  def test_extra_options_not_present_without_test_mode
+    xml =  @gateway.send(:build_request, :create_customer_profile_transaction, transaction_options)
+    doc = REXML::Document.new(xml)
+    assert_nil doc.elements['extraOptions']
+  end
+
+  def test_extra_options_present_with_test_mode
+    gateway = AuthorizeNetCimGateway.new(
+      :login => 'X',
+      :password => 'Y',
+      :test => true
+    )
+
+    xml =  gateway.send(:build_request, :create_customer_profile_transaction, transaction_options)
+    doc = REXML::Document.new(xml)
+    assert doc.elements['createCustomerProfileTransactionRequest/extraOptions']
+    assert_equal "x_test_request=TRUE", doc.elements['createCustomerProfileTransactionRequest/extraOptions'].text
+  end
+
+  def test_extra_options_not_present_without_duplicate_window
+    AuthorizeNetCimGateway.duplicate_window = nil
+    xml =  @gateway.send(:build_request, :create_customer_profile_transaction, transaction_options)
+    doc = REXML::Document.new(xml)
+    assert_nil doc.elements['extraOptions']
+  end
+
+  def test_extra_options_present_with_duplicate_window
+    AuthorizeNetCimGateway.duplicate_window = 1
+
+    xml =  @gateway.send(:build_request, :create_customer_profile_transaction, transaction_options)
+    doc = REXML::Document.new(xml)
+    assert doc.elements['createCustomerProfileTransactionRequest/extraOptions']
+    assert_equal "x_duplicate_window=#{AuthorizeNetCimGateway.duplicate_window}", doc.elements['createCustomerProfileTransactionRequest/extraOptions'].text
+  end
+
+  def test_extra_options_present_with_both_test_mode_and_duplicate_window
+    AuthorizeNetCimGateway.duplicate_window = 1
+
+    gateway = AuthorizeNetCimGateway.new(
+      :login => 'X',
+      :password => 'Y',
+      :test => true
+    )
+
+    xml =  gateway.send(:build_request, :create_customer_profile_transaction, transaction_options)
+    doc = REXML::Document.new(xml)
+
+    extra_options = []
+    if text =  doc.elements['createCustomerProfileTransactionRequest/extraOptions'].text
+      extra_options = text.split('&')
+    end
+
+    assert doc.elements['createCustomerProfileTransactionRequest/extraOptions']
+    assert extra_options.include?("x_test_request=TRUE")
+    assert extra_options.include?("x_duplicate_window=#{AuthorizeNetCimGateway.duplicate_window}")
   end
 
   def test_gateway_mode_option
@@ -689,5 +747,16 @@ class AuthorizeNetCimTest < Test::Unit::TestCase
       </validateCustomerPaymentProfileResponse>
     XML
   end
-  
+
+  def transaction_options
+    {
+      :transaction => {
+        :customer_profile_id => @customer_profile_id,
+        :customer_payment_profile_id => @customer_payment_profile_id,
+        :type => :auth_only,
+        :amount => @amount
+      }
+    }
+  end
+
 end
