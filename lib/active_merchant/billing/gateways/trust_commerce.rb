@@ -140,6 +140,8 @@ module ActiveMerchant #:nodoc:
       end
       
       def test?
+        return false if @options[:gateway_mode] == :production
+        
         @options[:login] == TEST_LOGIN &&
           @options[:password] == TEST_PASSWORD || @options[:test] || super
       end

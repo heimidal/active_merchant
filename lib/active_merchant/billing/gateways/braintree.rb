@@ -5,6 +5,11 @@ module ActiveMerchant #:nodoc:
       def api_url 
         'https://secure.braintreepaymentgateway.com/api/transact.php'
       end
+      
+      def test?
+        return false if @options[:gateway_mode] == :production
+        super
+      end
     
       self.supported_countries = ['US']
       self.supported_cardtypes = [:visa, :master, :american_express, :discover]

@@ -11,7 +11,7 @@ module ActiveMerchant #:nodoc:
         requires!(options, :login, :password)
         @options = options
         super
-      end  
+      end
       
       # Pass :store => true in the options to store the 
       # payment info at the gateway and get a generated 
