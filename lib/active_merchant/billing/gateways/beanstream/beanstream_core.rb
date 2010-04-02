@@ -64,6 +64,11 @@ module ActiveMerchant #:nodoc:
         super
       end
       
+      def test?
+        return false if @options[:gateway_mode] == :production
+        super
+      end
+      
       def capture(money, authorization, options = {})
         reference, amount, type = split_auth(authorization)
         

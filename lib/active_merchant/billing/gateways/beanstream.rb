@@ -65,11 +65,11 @@ module ActiveMerchant #:nodoc:
     class BeanstreamGateway < Gateway
       include BeanstreamCore
       
-      def authorize(money, credit_card, options = {})
+      def authorize(money, source, options = {})
         post = {}
         add_amount(post, money)
         add_invoice(post, options)
-        add_credit_card(post, credit_card)        
+        add_source(post, source)
         add_address(post, options)
         add_transaction_type(post, :authorization)
         commit(post)
