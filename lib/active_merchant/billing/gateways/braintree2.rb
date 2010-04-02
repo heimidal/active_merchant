@@ -1,5 +1,3 @@
-require 'braintree'
-
 module ActiveMerchant #:nodoc:
   module Billing #:nodoc:
     class Braintree2Gateway < Gateway
@@ -14,6 +12,8 @@ module ActiveMerchant #:nodoc:
       end
 
       def initialize(options = {})
+        require 'braintree'
+        
         requires!(options, :merchant_id, :public_key, :private_key)
         @options = options
         Braintree::Configuration.merchant_id = options[:merchant_id]
